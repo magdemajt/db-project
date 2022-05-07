@@ -1,0 +1,27 @@
+services:
+  web:
+    build: ./
+    ports:
+      - "8000:8000"
+    networks:
+      - db-network
+    volumes:
+      - ./:/app/
+    command: ["yarn", "start"]
+  db:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    ports:
+      - 5432:5432
+    networks:
+      - db-network
+    volumes:
+      - app:/data/postgres
+networks:
+  db-network:
+volumes:
+  app:
