@@ -7,4 +7,4 @@ RUN yarn install --frozen-lockfile --non-interactive --production=false && yarn 
 
 CMD ["node", "build/src/index.js"]
 
-EXPOSE 8000
+EXPOSE 8080

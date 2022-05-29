@@ -1,6 +1,7 @@
 import express from 'express';
+import User from 'models/User';
 type ExpressHandler = (
-  req: express.Request,
+  req: express.Request & { session: express.Request['session'] & { user?: User; } },
   res: express.Response,
   next: express.NextFunction,
 ) => Promise<void>;

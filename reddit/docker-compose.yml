@@ -2,12 +2,13 @@ services:
   web:
     build: ./
     ports:
-      - "8000:8000"
+      - "8080:8080"
     networks:
       - db-network
     volumes:
       - ./:/app/
     command: ["yarn", "start"]
+    restart: always
   db:
     image: postgres
     restart: always
