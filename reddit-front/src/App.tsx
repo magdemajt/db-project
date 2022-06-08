@@ -7,6 +7,7 @@ import { QueryClient, QueryClientProvider } from 'react-query';
 import LoginPage from 'views/login/LoginPage';
 import AuthContextProvider from 'contexts/AuthContext';
 import RegisterPage from 'views/register/RegisterPage';
+import GroupsPage from 'views/groups/GroupsPage';
 
 const queryClient = new QueryClient();
 
@@ -24,6 +25,7 @@ function App() {
               <Routes>
                 <Route path="/login" element={<LoginPage/>}/>
                 <Route path="/register" element={<RegisterPage/>}/>
+                <Route path="/groups" element={<GroupsPage/>}/>
               </Routes>
             </Box>
           </ThemeProvider>

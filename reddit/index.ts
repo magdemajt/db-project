@@ -1,5 +1,6 @@
 import express, { Request } from 'express'
 import authController from './controllers/authController'
+import groupsController from './controllers/groupsController'
 import cors from 'cors'
 import session from 'express-session';
 import User from 'models/User';
@@ -35,6 +36,7 @@ app.use(session({
 app.use(express.json());
 
 app.use('/auth', authController);
+app.use('/groups', groupsController);
 
 // Auth middleware
 app.use((req: Request & { session: Request['session'] & { user?: User } }, res, next) => {

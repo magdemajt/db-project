@@ -4,10 +4,8 @@ import db from 'dbConnection';
 import User from 'models/User';
 import auth from 'middleware/auth';
 
-
 interface IUserRepository {
   getUserByEmail(email: string): Promise<User | undefined>;
-
   saveUser(user: User): Promise<number>;
 }
 
@@ -98,10 +96,9 @@ authController.post('/register', asyncWrapper(async (req, res) => {
     return;
   }
 
-
   const newUser = new User(null, req.body.name, req.body.email, await User.generatePasswordHash(req.body.password));
-  await UserRepository.saveUser(newUser);
-
+  const id = await UserRepository.saveUser(newUser);
+  newUser.id = id;
   req.session.user = newUser;
   await new Promise((resolve) => req.session.save(resolve));
 
