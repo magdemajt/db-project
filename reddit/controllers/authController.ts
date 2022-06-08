@@ -8,7 +8,7 @@ import auth from 'middleware/auth';
 interface IUserRepository {
   getUserByEmail(email: string): Promise<User | undefined>;
 
-  saveUser(user: User): Promise<void>;
+  saveUser(user: User): Promise<number>;
 }
 
 const UserRepository: IUserRepository = {
@@ -24,12 +24,13 @@ const UserRepository: IUserRepository = {
     }
     return User.fromJson(user.rows[0]);
   },
-  async saveUser(user: User): Promise<void> {
-    await db.query(
+  async saveUser(user: User): Promise<number> {
+    const result = await db.query(
       `INSERT INTO Users(email, passwordHash, name)
-       VALUES ($1, $2, $3)`,
+       VALUES ($1, $2, $3) RETURNING id`,
       [user.email, user.passwordHash, user.nickname],
     );
+    return result.rows[0].id;
   },
 }
 
@@ -98,7 +99,7 @@ authController.post('/register', asyncWrapper(async (req, res) => {
   }
 
 
-  const newUser = new User('1', req.body.name, req.body.email, await User.generatePasswordHash(req.body.password));
+  const newUser = new User(null, req.body.name, req.body.email, await User.generatePasswordHash(req.body.password));
   await UserRepository.saveUser(newUser);
 
   req.session.user = newUser;
