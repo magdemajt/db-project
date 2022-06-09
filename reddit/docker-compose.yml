@@ -8,10 +8,10 @@ services:
     volumes:
       - ./:/app/
     command: ["yarn", "start"]
-    restart: always
+    restart: "no"
   db:
     image: postgres
-    restart: always
+    restart: "no"
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres

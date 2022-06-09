@@ -16,9 +16,9 @@ export default class User {
   static fromJson(json: any): User {
     return new User(
       json.id,
-      json.nickname,
+      json.name,
       json.email,
-      json.passwordHash
+      json.passwordhash
     );
   }
 
