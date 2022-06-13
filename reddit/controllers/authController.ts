@@ -76,7 +76,9 @@ authController.post('/logout', auth, asyncWrapper(async (req, res) => {
 
 authController.get('/me', auth, asyncWrapper(async (req, res) => {
   res.status(200).json({
+    id: req.session.user!.id,
     nickname: req.session.user!.nickname,
+    email: req.session.user!.email,
   });
 }));
 

@@ -1,12 +1,14 @@
 import express, { Request } from 'express'
 import authController from './controllers/authController'
 import groupsController from './controllers/groupsController'
+import postsController from './controllers/postsController'
 import cors from 'cors'
 import session from 'express-session';
 import User from 'models/User';
 
 import PgStore from 'connect-pg-simple';
 import dbConnection from 'dbConnection';
+import commentController from 'controllers/commentController'
 
 
 
@@ -37,6 +39,8 @@ app.use(express.json());
 
 app.use('/auth', authController);
 app.use('/groups', groupsController);
+app.use('/posts', postsController);
+app.use('/comments', commentController);
 
 // Auth middleware
 app.use((req: Request & { session: Request['session'] & { user?: User } }, res, next) => {

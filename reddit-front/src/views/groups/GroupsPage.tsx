@@ -3,9 +3,11 @@ import { useForm } from 'react-hook-form';
 import { generateRequestConfig, generateURL } from 'config';
 import { useNavigate } from 'react-router-dom';
 
-import { Button, Card, CardContent, CardHeader, Grid } from '@mui/material';
+import { Button, Card, CardActions, CardContent, CardHeader, Grid, IconButton } from '@mui/material';
 import FormTextField from 'components/FormTextField';
 import { FormProvider } from 'react-hook-form';
+import CheckIcon from '@mui/icons-material/Check';
+import CloseIcon from '@mui/icons-material/Close';
 
 export default function GroupsPage() {
   const methods = useForm<{ name: string; groupId: number }>();
@@ -14,7 +16,7 @@ export default function GroupsPage() {
   const [planets, setPlanets] = useState([]);
 
   async function fetchData() {
-    console.log('fetching');
+    // console.log('fetching');
     const res = await fetch(generateURL('/groups'), generateRequestConfig({
       method: 'GET'
     }));
@@ -22,7 +24,7 @@ export default function GroupsPage() {
     res
       .json()
       .then(res => {
-        console.log(res);
+        // console.log(res);
         setPlanets(res.groups);
       })
       .catch(err => setErrors(err));
@@ -61,11 +63,24 @@ export default function GroupsPage() {
 
   const { handleSubmit } = methods;
 
+  function sign(belongs: boolean, id: number){
+    if(belongs){
+      onDeEnter(id);
+    }
+    else{
+      onEnter(id);
+    }
+  }
+
+  function navigateToPosts(id_group:number, belongs: number){
+    navigate('/groupPosts/'+belongs+'/'+id_group);
+  }
+
   return (
     <FormProvider {...methods}>
       <Grid container spacing={2}>
         <Grid item xs={12} md={6}>
-          <Card>
+          <Card sx={{ width: 500, margin: 4}}>
             <CardHeader title="Nowa grupę"/>
             <CardContent>
               <Grid container spacing={2}>
@@ -80,21 +95,55 @@ export default function GroupsPage() {
               </Grid>
             </CardContent>
           </Card>
-          <Card>
           <div>
           {
             planets.map((item: any, key: any) => (
-              <li className="list-group-item" key={key} value={item.id}>
-                {item.name} {item.name} {item.id} {item.belongs ? 
-                 <button name="groupId" value={item.id} onClick={_ => onDeEnter(item.id)}>wypisz sie</button> :
-                 <button name="groupId" value={item.id} onClick={_ => onEnter(item.id)}>dopisz sie</button>}
-              </li>
+              <Grid   
+              container
+              direction="column"
+              alignItems="center"
+              key={key}
+              >
+                <Card sx={{ width: 500, margin: 1}}>
+                <CardHeader
+                    title={item.name}
+                    subheader={''}
+                />
+                <CardActions disableSpacing>
+                    <IconButton aria-label="sign">
+                      { 
+                        item.belongs ? 'Exit' : 'Enter'
+                      }
+                    </IconButton>
+                    <IconButton aria-label="sign" onClick={ () => {sign(item.belongs, item.id)} }>
+                      { 
+                        item.belongs ? <CloseIcon /> : <CheckIcon />
+                      }
+                    </IconButton>
+                    <IconButton aria-label="vote value" onClick={ () => { navigateToPosts(item.id, item.belongs) }}>
+                      Visit group
+                    </IconButton>
+                </CardActions>
+                </Card>
+              </Grid>
             ))
           }
           </div>
-          </Card>
         </Grid>
       </Grid>
     </FormProvider>
   );
 }
+
+
+{/* <GroupComponent 
+key={key}
+id={item.id} 
+name={item.name} 
+belongs={item.belongs}/>
+
+<li className="list-group-item" key={key} value={item.id}>
+  {item.name} {item.name} {item.id} {item.belongs ? 
+   <button name="groupId" value={item.id} onClick={_ => onDeEnter(item.id)}>wypisz sie</button> :
+   <button name="groupId" value={item.id} onClick={_ => onEnter(item.id)}>dopisz sie</button>}
+</li> */}
