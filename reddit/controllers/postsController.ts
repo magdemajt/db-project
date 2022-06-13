@@ -45,8 +45,10 @@ interface IPostController {
     getLikeResult(id_posts: number): Promise<number>;
     getLikeResultWithUser(id_users: number): Promise<ValueRow[]>
     addPost(id_users: number, title: string, post_content: string): Promise<boolean>;
-    insertVote(id_posts: number, id_users: number, value: number): Promise<void>
-    updateVote(id_posts: number, id_users: number, value: number): Promise<void>
+    addPostWithGroup(id_users: number, title: string, post_content: string, id_group: number):
+    Promise<boolean>;
+    insertVote(id_posts: number, id_users: number, value: number): Promise<void>;
+    updateVote(id_posts: number, id_users: number, value: number): Promise<void>;
 }
 
 const PostRepository: IPostController = {
@@ -61,15 +63,16 @@ const PostRepository: IPostController = {
             created_at: string
         }[]> {
             const result = await db.query(
-                `SELECT p.id, sum(pv.value) as value, p.id_users, u.name, p.title, p.post_content, p.created_at
+                `SELECT p.id, sum(coalesce(pv.value,0)) AS value, p.id_users, u.name, p.title, p.post_content, p.created_at
                 FROM posts p
-                inner join users u on p.id_users = u.id
-                inner join posts_votes pv on p.id = pv.id_posts
+                INNER JOIN users u ON p.id_users = u.id
                 INNER JOIN posts_in_groups pig ON p.id = pig.id_posts
+                LEFT JOIN posts_votes pv ON p.id = pv.id_posts
                 WHERE pig.id_groups = $1
-                group by p.id, p.id_users, u.name,p.title, p.post_content, p.created_at;`,
+                GROUP BY p.id, p.id_users, u.name,p.title, p.post_content, p.created_at;`,
                 [id_groups]
             );
+            console.log(result.rows);
             return result.rows;
     },
     async getAllPosts(amount: number):
@@ -83,11 +86,11 @@ const PostRepository: IPostController = {
             created_at: string
         }>> {
             const result = await db.query(
-                `SELECT p.id, sum(pv.value) as value, p.id_users, u.name, p.title, p.post_content, p.created_at
+                `SELECT p.id, sum(coalesce(pv.value, 0)) AS value, p.id_users, u.name, p.title, p.post_content, p.created_at
                 FROM posts p
-                inner join users u on p.id_users = u.id
-                inner join posts_votes pv on p.id = pv.id_posts
-                group by p.id, p.id_users, u.name,p.title, p.post_content, p.created_at;`
+                INNER JOIN users u ON p.id_users = u.id
+                LEFT JOIN posts_votes pv ON p.id = pv.id_posts
+                GROUP BY p.id, p.id_users, u.name,p.title, p.post_content, p.created_at;`
             );
             let posts_array: Array<{
                 id: number,
@@ -107,7 +110,7 @@ const PostRepository: IPostController = {
     },
     async getLikeResult(id_posts: number): Promise<number>{
         const result = await db.query(
-            `SELECT sum(value) AS sum FROM posts_votes
+            `SELECT coalesce(sum(value), 0) AS sum FROM posts_votes
             WHERE id_posts = $1;`,
             [id_posts]
         );
@@ -146,6 +149,31 @@ const PostRepository: IPostController = {
             [id_users, title, post_content]
         );
         // console.log(result);
+        return true;
+    },
+    async addPostWithGroup(id_users: number, title: string, post_content: string, id_groups: number):
+    Promise<boolean>{
+        const result = await db.query(
+            `INSERT INTO posts (id_users, title, post_content)
+            VALUES ($1, $2, $3);`,
+            [id_users, title, post_content]
+        );
+        const result_id_posts = await db.query(
+            `SELECT id FROM posts
+            WHERE id_users = $1 AND  title = $2 AND post_content = $3;`,
+            [id_users, title, post_content]
+        );
+        if(result_id_posts.rows.length == 0){
+            return false;
+        }
+        let id_posts = result_id_posts.rows[0].id;
+        console.log(result_id_posts.rows[0].id);
+        const result2 = await db.query(
+            `INSERT INTO posts_in_groups (id_groups, id_posts)
+            VALUES ($1, $2);`,
+            [id_groups, id_posts]
+        );
+        console.log(result2);
         return true;
     },
 
@@ -237,6 +265,15 @@ postController.get('', asyncWrapper(async (req, res) => {
     res.status(200).json({
       value: val
     });
+  }));
+
+  postController.post('/addPost', asyncWrapper(async (req, res) => {
+    const userId = +req.session.user?.id;
+    // console.log(userId, req.body.title)
+    console.log(userId, req.body.title , req.body.post_content, +req.body.id_group);
+    // await PostRepository.addPost(userId, req.body.title , req.body.post_content);
+    await PostRepository.addPostWithGroup(userId, req.body.title , req.body.post_content, +req.body.id_group);
+    res.status(200).json({});
   }));
   
 export default postController;

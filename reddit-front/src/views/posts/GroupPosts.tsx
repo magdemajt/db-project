@@ -10,7 +10,9 @@ export default function PostsPage(props: any) {
     const [hasError, setErrors] = useState(false);
     const [planets, setPlanets] = useState([]);
     const [likeResult, setLikeResult] = useState(new Map());
-
+    const [titleForm, setTitleForm] = useState('');
+    const [contentForm, setContentForm] = useState('');
+    const [error, setError] = useState('');
 
     let {is_participant, id_group} = useParams();
 
@@ -56,7 +58,31 @@ export default function PostsPage(props: any) {
         // console.log(planets);
       }, []);
 
+      function handleChangeContent(content: string){
+        setContentForm(content);
+      }
 
+      function handleChangeTitle(title: string){
+        setTitleForm(title);
+      }
+
+    async function submit(event: any){
+      if(is_participant == 'true'){
+        event.preventDefault();
+        // console.log("title: ", titleForm);
+        // console.log("content: ", contentForm);
+  
+        const data = {title: titleForm, post_content: contentForm, id_group: id_group};
+        await fetch(generateURL('/posts/addPost'), generateRequestConfig({
+          method: 'POST',
+          body: JSON.stringify(data)
+        }));
+      }
+      else{
+        setError('You cannot add post! You have to be a member of a group.');
+      }
+    }
+    
     return (
     <div>
     <Grid   
@@ -73,13 +99,15 @@ export default function PostsPage(props: any) {
           <Typography>Add Post: </Typography>
         </AccordionSummary>
         <AccordionDetails>
-        {/* <form>
+        <form>
             <label>Title:</label>
-            <input type="text" name="name" /><br/>
+            <input type="text" name="name" value={titleForm} onChange={ e => handleChangeTitle(e.target.value) }/><br/>
             <label>Content:</label>
-            <input type="text" name="title" /><br/>
-            <input type="submit" value="Submit" />
-        </form> */}
+            <textarea value={contentForm} onChange={ e => handleChangeContent(e.target.value) }/>
+            {/* <input type="submit" value="Submit" /> */}
+            <input type="button" onClick={submit} value="Add Post" />
+        </form>
+        <Typography>{error}</Typography>
         </AccordionDetails>
       </Accordion>
       </Grid>
