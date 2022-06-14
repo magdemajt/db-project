@@ -28,9 +28,6 @@ const pages = [{
 }, {
   title: 'Auth',
   path: '/auth',
-}, {
-  title: 'Post',
-  path: '/post',
 }];
 
 const ResponsiveAppBar = () => {
